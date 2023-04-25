@@ -51,4 +51,5 @@ export async function* readKeypress(
     }
     logger.debug("  for (const uint8 of subarray) {}. DONE.");
   }
+  logger.info("Finished reading keypresses.");
 }
