@@ -11,6 +11,9 @@ const FPS = 25;
 const delay = 1000 / FPS;
 let done = false;
 async function iterate() {
+  if (done) {
+    return;
+  }
   await Deno.stdout.write(
     encoder.encode("\r" + spinner[counter++ % spinner.length] + "\r"),
   );
