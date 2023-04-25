@@ -6,6 +6,7 @@ const ASCII_CTRL_C = 3;
 const ASCII_ESC = 27;
 
 logger.info("Press Ctrl-C or Esc to stop reading keys.");
+await Deno.stdout.write(new TextEncoder().encode("Working..."));
 
 const spinner = new Spinner({
   writer: Deno.stderr,
@@ -17,11 +18,12 @@ spinner.start();
 for await (const byte of keypressReader.generator) {
   logger.info({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
-    spinner.stop();
     keypressReader.stop();
-    await spinner.done;
     await keypressReader.done;
     break;
   }
 }
+spinner.stop();
+await spinner.done;
+
 logger.info("END OF PROGRAM");
