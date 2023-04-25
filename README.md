@@ -11,7 +11,7 @@ That could be useful for making a
 ## Conclusion
 
 ```sh
-deno run https://raw.githubusercontent.com/hugojosefson/deno-stdin/main/src/for-await-of-read-keypress.ts --silent
+deno run --reload https://raw.githubusercontent.com/hugojosefson/deno-stdin/main/src/for-await-of-read-keypress.ts --silent
 ```
 
 Source code in:
