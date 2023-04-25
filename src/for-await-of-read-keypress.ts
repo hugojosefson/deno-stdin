@@ -27,7 +27,7 @@ logger.info("Press Ctrl-C or Esc to stop reading keys.");
 logger.debug("for await (const byte of readKeypress()) {");
 for await (const byte of readKeypress()) {
   logger.debug("  logger.debug({ byte });");
-  logger.debug({ byte });
+  logger.info({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
     done = true;
     stopReading();
