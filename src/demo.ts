@@ -12,7 +12,6 @@ const spinner = new Spinner({
   writer: Deno.stderr,
   steps: stepsBrailleCounter,
 });
-spinner.start();
 
 const keypressReader = new KeypressReader();
 try {

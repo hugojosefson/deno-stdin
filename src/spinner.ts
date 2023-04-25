@@ -94,16 +94,19 @@ export interface SpinnerOptions {
   delay?: number;
   writer?: Deno.Writer;
   steps?: readonly string[];
+  autoStart?: boolean;
 }
 
 const defaultSpinnerOptions: Required<SpinnerOptions> = {
   delay: 500,
   writer: Deno.stderr,
   steps: stepsDefault,
+  autoStart: true,
 };
 
 export class Spinner {
   private counter = 0;
+  private started = false;
   private shouldStop = false;
   private readonly doneDeferred = new Deferred<void>();
   private readonly delay: number;
@@ -119,6 +122,10 @@ export class Spinner {
     const { frames, clearFrame } = createSpinnerDrawables(steps);
     this.frames = frames;
     this.clearFrame = clearFrame;
+
+    if (options.autoStart ?? defaultSpinnerOptions.autoStart) {
+      this.start();
+    }
   }
 
   private async spinStep() {
@@ -140,7 +147,10 @@ export class Spinner {
   }
 
   start() {
-    void this.spinStep();
+    if (!this.started) {
+      this.started = true;
+      void this.spinStep();
+    }
   }
 
   stop() {
