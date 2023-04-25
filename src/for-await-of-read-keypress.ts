@@ -7,14 +7,15 @@ const ASCII_ESC = 27;
 
 logger.info("Press Ctrl-C or Esc to stop reading keys.");
 
-const spinner = new Spinner();
+const spinner = new Spinner(Deno.stderr);
+await spinner.start();
 
-for await (const byte of readKeypress()) {
+for await (const byte of readKeypress(Deno.stdin)) {
   logger.info({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
-    spinner.stopSpinning();
+    await spinner.stop();
     stopReading();
-    await spinner.promise;
+    await spinner.done;
     break;
   }
 }
