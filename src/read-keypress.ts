@@ -23,17 +23,17 @@ export async function* readKeypress(
     const buffer = new Uint8Array(bufferLength);
     console.log("  const buffer = new Uint8Array(bufferLength); DONE.");
 
-    console.log("  Deno.setRaw(reader.rid, true);");
-    Deno.setRaw(reader.rid, true);
-    console.log("  Deno.setRaw(reader.rid, true); DONE.");
+    console.log("  Deno.stdin.setRaw(true);");
+    Deno.stdin.setRaw(true);
+    console.log("  Deno.stdin.setRaw(true); DONE.");
 
     console.log("  const length = <number> await reader.read(buffer);");
     const length = <number> await reader.read(buffer);
     console.log("  const length = <number> await reader.read(buffer); DONE.");
 
-    console.log("  Deno.setRaw(reader.rid, false);");
-    Deno.setRaw(reader.rid, false);
-    console.log("  Deno.setRaw(reader.rid, false); DONE.");
+    console.log("  Deno.stdin.setRaw(false);");
+    Deno.stdin.setRaw(false);
+    console.log("  Deno.stdin.setRaw(false); DONE.");
 
     console.log("  const subarray: Uint8Array = buffer.subarray(0, length);");
     const subarray: Uint8Array = buffer.subarray(0, length);

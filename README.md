@@ -1,10 +1,9 @@
 # Deno stdin experiments
 
 Trying different ways of reading
-[Deno.stdin](https://doc.deno.land/deno/stable/~/Deno.stdin). I hope to be able
-to switch in and out of
-[Deno.setRaw()](https://doc.deno.land/deno/unstable/~/Deno.setRaw), while
-waiting for input, without locking up or encountering errors.
+[Deno.stdin](https://deno.land/api?s=Deno.stdin). I hope to be able to switch in
+and out of `Deno.stdin.setRaw()`, while waiting for input, without locking up or
+encountering errors.
 
 That could be useful for making a
 [port of ink for Deno](https://github.com/hugojosefson/ink) work correctly.
@@ -12,7 +11,7 @@ That could be useful for making a
 ## Conclusion
 
 ```sh
-deno run --unstable src/for-await-of-read-keypress.ts
+deno run src/for-await-of-read-keypress.ts
 ```
 
 Apparently, setting raw mode on `Deno.stdin` or `Deno.stdout`, and
