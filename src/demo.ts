@@ -12,18 +12,20 @@ const spinner = new Spinner({
   writer: Deno.stderr,
   steps: stepsBrailleCounter,
 });
-const keypressReader = new KeypressReader();
 spinner.start();
 
-for await (const byte of keypressReader.generator) {
-  logger.info({ byte });
-  if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
-    keypressReader.stop();
-    await keypressReader.done;
-    break;
+const keypressReader = new KeypressReader();
+try {
+  for await (const byte of keypressReader.generator) {
+    logger.info({ byte });
+    if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
+      break;
+    }
   }
+} finally {
+  await keypressReader.stop();
 }
-spinner.stop();
-await spinner.done;
+
+await spinner.stop();
 
 logger.info("END OF PROGRAM");

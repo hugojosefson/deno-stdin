@@ -24,6 +24,7 @@ export class KeypressReader {
   stop() {
     this.stdin.setRaw(false);
     this.doneDeferred.resolve();
+    return this.done;
   }
 
   get done() {
