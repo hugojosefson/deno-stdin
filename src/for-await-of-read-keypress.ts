@@ -9,8 +9,13 @@ const spinner = ["-", "\\", "|", "/"];
 let counter = 0;
 const FPS = 25;
 const delay = 1000 / FPS;
+
 let done = false;
-async function iterate() {
+function stopSpinning(): void {
+  done = true;
+}
+
+async function spinStep() {
   if (done) {
     return;
   }
@@ -18,21 +23,18 @@ async function iterate() {
     encoder.encode("\r" + spinner[counter++ % spinner.length] + "\r"),
   );
   if (!done) {
-    setTimeout(iterate, delay);
+    setTimeout(spinStep, delay);
   }
 }
-setTimeout(iterate, delay);
+setTimeout(spinStep, delay);
 
 logger.info("Press Ctrl-C or Esc to stop reading keys.");
 
-logger.debug("for await (const byte of readKeypress()) {");
 for await (const byte of readKeypress()) {
-  logger.debug("  logger.debug({ byte });");
   logger.info({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
-    done = true;
+    stopSpinning();
     stopReading();
   }
 }
-logger.debug("for await (const byte of readKeypress()) {}. DONE.");
 logger.info("END OF PROGRAM");
