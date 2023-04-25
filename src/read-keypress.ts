@@ -17,36 +17,36 @@ export async function* readKeypress(
     throw new Error("Keypress can be read only under TTY.");
   }
 
-  console.log("while (true) {");
+  logger.debug("while (true) {");
   while (!done) {
-    console.log("  const buffer = new Uint8Array(bufferLength);");
+    logger.debug("  const buffer = new Uint8Array(bufferLength);");
     const buffer = new Uint8Array(bufferLength);
-    console.log("  const buffer = new Uint8Array(bufferLength); DONE.");
+    logger.debug("  const buffer = new Uint8Array(bufferLength); DONE.");
 
-    console.log("  Deno.stdin.setRaw(true);");
+    logger.debug("  Deno.stdin.setRaw(true);");
     Deno.stdin.setRaw(true);
-    console.log("  Deno.stdin.setRaw(true); DONE.");
+    logger.debug("  Deno.stdin.setRaw(true); DONE.");
 
-    console.log("  const length = <number> await reader.read(buffer);");
+    logger.debug("  const length = <number> await reader.read(buffer);");
     const length = <number> await reader.read(buffer);
-    console.log("  const length = <number> await reader.read(buffer); DONE.");
+    logger.debug("  const length = <number> await reader.read(buffer); DONE.");
 
-    console.log("  Deno.stdin.setRaw(false);");
+    logger.debug("  Deno.stdin.setRaw(false);");
     Deno.stdin.setRaw(false);
-    console.log("  Deno.stdin.setRaw(false); DONE.");
+    logger.debug("  Deno.stdin.setRaw(false); DONE.");
 
-    console.log("  const subarray: Uint8Array = buffer.subarray(0, length);");
+    logger.debug("  const subarray: Uint8Array = buffer.subarray(0, length);");
     const subarray: Uint8Array = buffer.subarray(0, length);
-    console.log(
+    logger.debug(
       "  const subarray: Uint8Array = buffer.subarray(0, length); DONE.",
     );
 
-    console.log("  for (const uint8 of subarray) {");
+    logger.debug("  for (const uint8 of subarray) {");
     for (const uint8 of subarray) {
-      console.log("    yield uint8;");
+      logger.debug("    yield uint8;");
       yield uint8;
-      console.log("    yield uint8; DONE.");
+      logger.debug("    yield uint8; DONE.");
     }
-    console.log("  for (const uint8 of subarray) {}. DONE.");
+    logger.debug("  for (const uint8 of subarray) {}. DONE.");
   }
 }

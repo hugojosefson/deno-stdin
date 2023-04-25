@@ -1,3 +1,4 @@
+import logger from "./logger.ts";
 import { readKeypress, stopReading } from "./read-keypress.ts";
 
 const ASCII_CTRL_C = 3;
@@ -21,16 +22,16 @@ async function iterate() {
 }
 setTimeout(iterate, delay);
 
-console.log("Press Ctrl-C or Esc to stop reading keys.");
+logger.info("Press Ctrl-C or Esc to stop reading keys.");
 
-console.log("for await (const byte of readKeypress()) {");
+logger.debug("for await (const byte of readKeypress()) {");
 for await (const byte of readKeypress()) {
-  console.log("  console.log({ byte });");
-  console.log({ byte });
+  logger.debug("  logger.debug({ byte });");
+  logger.debug({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
     done = true;
     stopReading();
   }
 }
-console.log("for await (const byte of readKeypress()) {}. DONE.");
-console.log("END OF PROGRAM");
+logger.debug("for await (const byte of readKeypress()) {}. DONE.");
+logger.info("END OF PROGRAM");
