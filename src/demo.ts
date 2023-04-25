@@ -1,25 +1,26 @@
 import logger from "./logger.ts";
-import { readKeypress, stopReading } from "./read-keypress.ts";
-import { Spinner, SpinnerOptions, stepsBrailleCounter } from "./spinner.ts";
+import { KeypressReader } from "./keypress-reader.ts";
+import { Spinner, stepsBrailleCounter } from "./spinner.ts";
 
 const ASCII_CTRL_C = 3;
 const ASCII_ESC = 27;
 
 logger.info("Press Ctrl-C or Esc to stop reading keys.");
 
-const spinnerOptions: SpinnerOptions = {
+const spinner = new Spinner({
   writer: Deno.stderr,
   steps: stepsBrailleCounter,
-};
-const spinner = new Spinner(spinnerOptions);
+});
+const keypressReader = new KeypressReader();
 spinner.start();
 
-for await (const byte of readKeypress(Deno.stdin)) {
+for await (const byte of keypressReader.generator) {
   logger.info({ byte });
   if (byte === ASCII_CTRL_C || byte === ASCII_ESC) {
     spinner.stop();
-    stopReading();
+    keypressReader.stop();
     await spinner.done;
+    await keypressReader.done;
     break;
   }
 }

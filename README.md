@@ -11,11 +11,10 @@ That could be useful for making a
 ## Conclusion
 
 ```sh
-deno run --reload https://raw.githubusercontent.com/hugojosefson/deno-stdin/main/src/for-await-of-read-keypress.ts --silent
+deno run --reload https://raw.githubusercontent.com/hugojosefson/deno-stdin/main/src/demo.ts --silent
 ```
 
-Source code in:
-[src/for-await-of-read-keypress.ts](src/for-await-of-read-keypress.ts)
+Source code in: [src/demo.ts](src/demo.ts)
 
 Apparently, setting raw mode on `Deno.stdin`, and reading/writing is fine, as
 long as you await the `Promise` returned from
