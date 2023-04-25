@@ -19,16 +19,20 @@ export async function* readKeypress(
     throw new Error("Keypress can be read only under TTY.");
   }
 
-  while (!done) {
-    const buffer = new Uint8Array(bufferLength);
+  try {
+    while (!done) {
+      const buffer = new Uint8Array(bufferLength);
 
-    stdin.setRaw(true);
-    const length = <number> await stdin.read(buffer);
-    stdin.setRaw(false);
+      stdin.setRaw(true);
+      const length = <number> await stdin.read(buffer);
+      stdin.setRaw(false);
 
-    const subarray: Uint8Array = buffer.subarray(0, length);
-    for (const uint8 of subarray) {
-      yield uint8;
+      const subarray: Uint8Array = buffer.subarray(0, length);
+      for (const uint8 of subarray) {
+        yield uint8;
+      }
     }
+  } finally {
+    stdin.setRaw(false);
   }
 }
