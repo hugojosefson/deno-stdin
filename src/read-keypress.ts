@@ -4,16 +4,18 @@ export function stopReading(): void {
   done = true;
 }
 
+type RawSetter = { setRaw(mode: boolean, options?: Deno.SetRawOptions): void };
+
 /**
  * Adapted from https://deno.land/x/keypress@0.0.7/mod.ts
  * Copyright (c) 2020 Dmitriy Tatarintsev
  * MIT License
  */
 export async function* readKeypress(
-  reader: Deno.Reader & { rid: number } = Deno.stdin,
+  stdin: Deno.Reader & { rid: number } & RawSetter = Deno.stdin,
   bufferLength = 1024,
 ): AsyncIterableIterator<number> {
-  if (!Deno.isatty(reader.rid)) {
+  if (!Deno.isatty(stdin.rid)) {
     throw new Error("Keypress can be read only under TTY.");
   }
 
@@ -24,15 +26,15 @@ export async function* readKeypress(
     logger.debug("  const buffer = new Uint8Array(bufferLength); DONE.");
 
     logger.debug("  Deno.stdin.setRaw(true);");
-    Deno.stdin.setRaw(true);
+    stdin.setRaw(true);
     logger.debug("  Deno.stdin.setRaw(true); DONE.");
 
     logger.debug("  const length = <number> await reader.read(buffer);");
-    const length = <number> await reader.read(buffer);
+    const length = <number> await stdin.read(buffer);
     logger.debug("  const length = <number> await reader.read(buffer); DONE.");
 
     logger.debug("  Deno.stdin.setRaw(false);");
-    Deno.stdin.setRaw(false);
+    stdin.setRaw(false);
     logger.debug("  Deno.stdin.setRaw(false); DONE.");
 
     logger.debug("  const subarray: Uint8Array = buffer.subarray(0, length);");
