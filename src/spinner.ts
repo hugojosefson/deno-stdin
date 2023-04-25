@@ -1,92 +1,150 @@
 import { Deferred } from "./deferred.ts";
 
-const encoder = new TextEncoder();
-const FRAMES = ["-", "\\", "|", "/"]
-  .map((frame) => "\r" + frame + "\r")
-  .map((frame) => encoder.encode(frame));
-const FRAME_CLEAR = encoder.encode("\r \r");
+const ANSI_CURSOR_LEFT = "\x1b[1D";
 
-type SpinnerState =
-  | "ready"
-  | "starting"
-  | "started"
-  | "stopping"
-  | "stopped"
-  | "done";
-const spinnerStates: SpinnerState[] = [
-  "ready",
-  "starting",
-  "started",
-  "stopping",
-  "stopped",
-  "done",
-] as const;
-
-function isValidStateTransition(from: SpinnerState, to: SpinnerState) {
-  return spinnerStates.indexOf(to) > spinnerStates.indexOf(from);
+function repeat(str: string, count: number): string[] {
+  return Array(count).fill(str);
 }
+
+function checkSteps(steps: readonly string[]): void {
+  if (!Array.isArray(steps)) {
+    throw new Error("Steps must be an array");
+  }
+  if (steps.length === 0) {
+    throw new Error("Steps must not be empty");
+  }
+  if (steps.some((step) => typeof step !== "string")) {
+    throw new Error("Steps must be an array of strings");
+  }
+  const stepLength = steps[0].length;
+  if (stepLength === 0) {
+    throw new Error("Steps must be at least one character each");
+  }
+  if (steps.some((step) => step.length !== stepLength)) {
+    throw new Error("Steps must be the same length");
+  }
+}
+
+interface SpinnerDrawables {
+  frames: Uint8Array[];
+  clearFrame: Uint8Array;
+}
+
+const encoder = new TextEncoder();
+const encode = encoder.encode.bind(encoder);
+
+function stepString(
+  preStep: string,
+  prePerChar: string,
+  postPerChar: string,
+  postStep: string,
+): (step: string) => string {
+  return function joinStepString(step: string): string {
+    return [
+      preStep,
+      ...repeat(prePerChar, step.length),
+      ...step.split(""),
+      ...repeat(postPerChar, step.length),
+      postStep,
+    ].join("");
+  };
+}
+
+function createSpinnerDrawables(
+  steps: readonly string[],
+  preStep = "",
+  prePerChar = "",
+  postPerChar = ANSI_CURSOR_LEFT,
+  postStep = "",
+): SpinnerDrawables {
+  checkSteps(steps);
+  const joinStepString: (step: string) => string = stepString(
+    preStep,
+    prePerChar,
+    postPerChar,
+    postStep,
+  );
+
+  const frames = steps
+    .map(joinStepString)
+    .map(encode);
+
+  const stepLength = steps[0].length;
+  const clearString = repeat(" ", stepLength).join("");
+  const clearStepString = joinStepString(clearString);
+  const clearFrame = encode(clearStepString);
+
+  return {
+    frames,
+    clearFrame,
+  } as SpinnerDrawables;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export const stepsDefault = ["-", "\\", "|", "/"] as const;
+export const stepsBrailleCounter: string[] = Array.from(
+  { length: 0x28FF - 0x2800 + 1 },
+  (_, i) => String.fromCodePoint(0x2800 + i),
+);
+
+export interface SpinnerOptions {
+  delay?: number;
+  writer?: Deno.Writer;
+  steps?: readonly string[];
+}
+
+const defaultSpinnerOptions: Required<SpinnerOptions> = {
+  delay: 500,
+  writer: Deno.stderr,
+  steps: stepsDefault,
+};
 
 export class Spinner {
   private counter = 0;
-  private readonly fps = 25;
-  readonly delay = 1000 / this.fps;
+  private shouldStop = false;
   private readonly doneDeferred = new Deferred<void>();
-  private intervalId?: number;
-  private state: SpinnerState;
+  private readonly delay: number;
+  private readonly writer: Deno.Writer;
+  private readonly frames: Uint8Array[];
+  private readonly clearFrame: Uint8Array;
 
-  async moveToState(newState: SpinnerState) {
-    if (!isValidStateTransition(this.state, newState)) {
-      throw new Error(
-        `Must move forward in spinner state. Cannot move from ${this.state} to ${newState}`,
-      );
-    }
-    this.state = newState;
+  constructor(options: SpinnerOptions = defaultSpinnerOptions) {
+    this.delay = options.delay ?? defaultSpinnerOptions.delay;
+    this.writer = options.writer ?? defaultSpinnerOptions.writer;
 
-    if (newState === "starting") {
-      this.state = "started";
-      this.intervalId = setInterval(this.spinStep.bind(this), this.delay);
-    }
-
-    if (newState === "done") {
-      if (!this.doneDeferred.isDone) {
-        this.doneDeferred.resolve();
-      }
-    }
-  }
-
-  constructor(writer: Deno.Writer = Deno.stdout) {
-    this.writer = writer;
-    this.state = "ready";
+    const steps = options.steps ?? defaultSpinnerOptions.steps;
+    const { frames, clearFrame } = createSpinnerDrawables(steps);
+    this.frames = frames;
+    this.clearFrame = clearFrame;
   }
 
   private async spinStep() {
     try {
-      if (this.state !== "started") {
+      if (this.shouldStop) {
         return;
       }
-      await this.writer.write(FRAMES[this.counter]);
-      this.counter = (this.counter + 1) % FRAMES.length;
+      await this.writer.write(this.frames[this.counter]);
+      this.counter = (this.counter + 1) % this.frames.length;
     } finally {
-      if (this.state === "stopping") {
-        await this.moveToState("stopped");
-      }
-      if (this.state === "stopped") {
-        if (this.intervalId) {
-          clearInterval(this.intervalId);
-          this.intervalId = undefined;
-          await this.writer.write(FRAME_CLEAR);
-          await this.moveToState("done");
-        }
+      if (this.shouldStop) {
+        await this.writer.write(this.clearFrame);
+        this.doneDeferred.resolve();
+      } else {
+        await sleep(this.delay);
+        void this.spinStep();
       }
     }
   }
 
-  async start() {
-    await this.moveToState("starting");
+  start() {
+    void this.spinStep();
   }
 
-  async stop() {
-    await this.moveToState("stopping");
+  stop() {
+    this.shouldStop = true;
   }
 
   get done() {

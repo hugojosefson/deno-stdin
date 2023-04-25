@@ -1,0 +1,5 @@
+{
+  "tasks": {
+    "check": "deno fmt && deno lint && deno check src/for-await-of-read-keypress.ts"
+  }
+}
