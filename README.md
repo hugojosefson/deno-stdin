@@ -11,15 +11,17 @@ That could be useful for making a
 ## Conclusion
 
 ```sh
-deno run src/for-await-of-read-keypress.ts
+deno run https://raw.githubusercontent.com/hugojosefson/deno-stdin/main/src/for-await-of-read-keypress.ts --silent
 ```
 
-Apparently, setting raw mode on `Deno.stdin` or `Deno.stdout`, and
-reading/writing is fine, as long as you await the `Promise` returned from
-[Deno.Writer.write](https://doc.deno.land/deno/stable/~/Deno.Writer#write).
+Source code in:
+[src/for-await-of-read-keypress.ts](src/for-await-of-read-keypress.ts)
+
+Apparently, setting raw mode on `Deno.stdin`, and reading/writing is fine, as
+long as you await the `Promise` returned from
+[Deno.Writer.write](https://deno.land/api?s=Deno.Writer#write).
 
 Don't just write in the background haphazardly, and then try to
-[Deno.setRaw()](https://doc.deno.land/deno/unstable/~/Deno.setRaw) while that's
-happening. Work with `Deno.stdout` in one loop where you await each
-`Deno.writer.write` and check a `let done: boolean` for whether to stop writing
-and resetting the raw mode to `false`.
+`Deno.stdin.setRaw()` while that's happening. Instead, in a loop where you await
+each `Deno.Writer.write`, check a `let done: boolean` flag for whether to stop
+writing and resetting the raw mode to `false`.
